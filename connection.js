@@ -8,12 +8,13 @@ const connection = mysql.createConnection({
   // Your username
   user: process.env.DB_USER,
   // Be sure to update with your own MySQL password!
-  password: process.env.DB_PASS,
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 });
 
 connection.connect((err) => {
   if (err) throw err;
+  console.log("connected as id " + connection.threadId + "\n");
 });
 
 module.exports = connection;
