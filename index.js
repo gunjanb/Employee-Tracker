@@ -79,37 +79,18 @@ const startApp = () => {
           break;
 
         case "Update employee managers":
-          //provide user all emp names AND IDselect emp whos managers need to be chnaged \
-          //provie manager names
-          //get emp id ffrom all emps info on step 1 to get manager is
-          //update manager_id where emp first name and last name = empmangtobechANGED
           promptForUpdateManager();
-
           break;
 
         case "Delete an employee":
-          //provide list of all emp
-          //get emp  for deletion
-          //check if not manager if manager dont delete
-          //delete
           promptForDeleteAnEmployee();
           break;
 
         case "Delete a department":
-          //delete a dept if not associated with any role
-          //all depts names with id in
-          //ask which department to remove
-          //find roles with that dep name
-          //if no roles are attached then del the dep
           promptForDeleteDepartment();
           break;
 
         case "Delete a role":
-          //delete a role if not associated with any emp
-          //provide all roles (id)for
-          //get role needs to be deleted and find role_id for role
-          //get all employess name where role_id is same
-          //if we getback an emp with same role_id which need to be deted then cant delete a role
           promptForDeleteRole();
           break;
 
@@ -118,27 +99,12 @@ const startApp = () => {
           break;
 
         case "View employees by Manager":
-          query
-            .viewAllEmployeesbyManager(connection)
-            .then((answer) => {
-              console.table(answer);
-              startApp();
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+          promptForViewAllEmpsByManagers();
+
           break;
 
         case "View employees by Department":
-          query
-            .viewAllEmployeesbyDepartment(connection)
-            .then((answer) => {
-              console.table(answer);
-              startApp();
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+          promptForViewAllEmpByDepartments();
           break;
 
         case "Quit":
@@ -151,12 +117,12 @@ const startApp = () => {
       }
     });
 };
-// var roleChoices;
+
 var deptName;
 var roleID;
 var firstName;
 var lastName;
-function promptForAddEmployee() {
+const promptForAddEmployee = () => {
   query.viewRoles(connection).then((rolesInfo) => {
     console.table("roleinfo", rolesInfo);
     const roleChoices = rolesInfo.map((row) => row.title);
@@ -272,9 +238,9 @@ function promptForAddEmployee() {
         console.log(err);
       });
   });
-}
+};
 
-function promptForBudgetUtilization() {
+const promptForBudgetUtilization = () => {
   query
     .viewDepartment(connection)
     .then((answer) => {
@@ -315,9 +281,9 @@ function promptForBudgetUtilization() {
     .catch((err) => {
       console.log(err);
     });
-}
+};
 
-function promptForUpdateEmployeeRole() {
+const promptForUpdateEmployeeRole = () => {
   // generate employee and role choices dynamically from db
   query.viewEmployees(connection).then((answer) => {
     console.table(
@@ -356,18 +322,13 @@ function promptForUpdateEmployeeRole() {
       });
     });
   });
-}
+};
 
 //provide list of all emp
 //get emp  for deletion
 //check if not manager if manager dont delete
-//delete
-// var index;
-function promptForDeleteAnEmployee() {
+const promptForDeleteAnEmployee = () => {
   query.viewEmployeesNames(connection).then((allEmps) => {
-    // let managersNameArray = allEmps.map(
-    //   (item) => item.first_name + " " + item.last_name
-    // );
     console.log("allemps from index.js", allEmps);
     inquirer
       .prompt([
@@ -434,13 +395,13 @@ function promptForDeleteAnEmployee() {
           });
       });
   });
-}
+};
 
-//provide user all emp names AND IDselect emp whos managers need to be chnaged \
-//provie manager names
-//get emp id from all emps info on step 1 to get manager is
-//update manager_id where emp first name and last name = empmangtobechANGED
-function promptForUpdateManager() {
+//provide user all emp names and let select an emp whos managers need to be changed
+//provie user  manager names
+//get emp id from all emps info on step 1 to get manager id
+//update manager_id where emp first name and last name = empmangtobechanged
+const promptForUpdateManager = () => {
   query
     .viewEmployeesNamesAndId(connection)
     .then((empsInfo) => {
@@ -507,14 +468,14 @@ function promptForUpdateManager() {
     .catch((err) => {
       console.log(err);
     });
-}
+};
 
 //delete a role if not associated with any emp
-//provide all roles (id)for
+//provide all roles (id)
 //get role needs to be deleted and find role_id for role
 //get all employess name where role_id is same
-//if we getback an emp with same role_id which need to be deted then cant delete a role
-function promptForDeleteRole() {
+//if we getback an emp with same role_id which need to be deleted then cant delete a role
+const promptForDeleteRole = () => {
   query
     .viewRoleNames(connection)
     .then((roleInfo) => {
@@ -573,14 +534,14 @@ function promptForDeleteRole() {
     .catch((err) => {
       console.log(err);
     });
-}
+};
 
 //delete a dept if not associated with any role
-//all depts names with id in
+//all depts names with id
 //ask which department to remove
 //find roles with that dep name
 //if no roles are attached then del the dep
-function promptForDeleteDepartment() {
+const promptForDeleteDepartment = () => {
   query
     .viewDepartment(connection)
     .then((res) => {
@@ -640,7 +601,7 @@ function promptForDeleteDepartment() {
     .catch((err) => {
       console.log(err);
     });
-}
+};
 const promptForViewDepartments = () => {
   query
     .viewDepartment(connection)
@@ -757,4 +718,28 @@ const promptForAddRole = () => {
           });
       });
   });
+};
+
+const promptForViewAllEmpsByManagers = () => {
+  query
+    .viewAllEmployeesbyManager(connection)
+    .then((answer) => {
+      console.table(answer);
+      startApp();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+const promptForViewAllEmpByDepartments = () => {
+  query
+    .viewAllEmployeesbyDepartment(connection)
+    .then((answer) => {
+      console.table(answer);
+      startApp();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
