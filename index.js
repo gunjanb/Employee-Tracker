@@ -4,10 +4,10 @@ const logo = require("asciiart-logo");
 const mysql = require("mysql");
 const Query = require("./query.js");
 const query = new Query();
-// require("dotenv").config();
 const connection = require("./connection.js");
 regexNumber = /^[0-9]*\d$/;
 
+//connecting to data base
 connection.connect((err) => {
   if (err) throw err;
   //console.log("connected as id " + connection.threadId + "\n");
@@ -21,6 +21,7 @@ connection.connect((err) => {
   startApp();
 });
 
+//starting the main prompt
 const startApp = () => {
   inquirer
     .prompt([
@@ -50,41 +51,15 @@ const startApp = () => {
     .then((answer) => {
       switch (answer.action) {
         case "View all departments":
-          query
-            .viewDepartment(connection)
-            .then((rows) => {
-              console.log(rows);
-              console.table("Departments", rows);
-              startApp();
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+          promptForViewDepartments();
           break;
 
         case "View all roles":
-          query
-            .viewRoles(connection)
-            .then((rows) => {
-              console.log(rows);
-              console.table("Roles", rows);
-              startApp();
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+          promptForViewRoles();
           break;
 
         case "View all employees":
-          query
-            .viewEmployees(connection)
-            .then((rows) => {
-              console.table("Employees", rows);
-              startApp();
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+          promptForViewEmployees();
           break;
 
         case "Add a department":
@@ -116,6 +91,7 @@ const startApp = () => {
             });
           break;
         case "Add a role":
+          //collect all departments from db
           query.viewDepartment(connection).then((Alldepts) => {
             let deptChoices = Alldepts.map((row) => row.dept_name);
             inquirer
@@ -742,3 +718,40 @@ function promptForDeleteDepartment() {
       console.log(err);
     });
 }
+const promptForViewDepartments = () => {
+  query
+    .viewDepartment(connection)
+    .then((rows) => {
+      //console.log(rows);
+      console.table("Departments", rows);
+      startApp();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+const promptForViewRoles = () => {
+  query
+    .viewRoles(connection)
+    .then((rows) => {
+      console.log(rows);
+      console.table("Roles", rows);
+      startApp();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+const promptForViewEmployees = () => {
+  query
+    .viewEmployees(connection)
+    .then((rows) => {
+      console.table("Employees", rows);
+      startApp();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
