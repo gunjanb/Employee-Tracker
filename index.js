@@ -38,6 +38,7 @@ const startApp = () => {
           "Update employee role",
           "Update employee managers",
           "View employees by Manager",
+          "View employees by Department",
           "Delete an employee",
           "Delete a department",
           "Delete a role",
@@ -116,6 +117,7 @@ const startApp = () => {
           break;
         case "Add a role":
           query.viewDepartment(connection).then((Alldepts) => {
+            let deptChoices = Alldepts.map((row) => row.dept_name);
             inquirer
               .prompt([
                 {
@@ -147,7 +149,7 @@ const startApp = () => {
                   type: "list",
                   name: "chooseDept",
                   message: "Please select department for current role",
-                  choices: Alldepts,
+                  choices: deptChoices,
                 },
               ])
               .then((ans) => {
@@ -178,15 +180,38 @@ const startApp = () => {
           break;
 
         case "Update employee managers":
+          //provide user all emp names AND IDselect emp whos managers need to be chnaged \
+          //provie manager names
+          //get emp id ffrom all emps info on step 1 to get manager is
+          //update manager_id where emp first name and last name = empmangtobechANGED
+          promptForUpdateManager();
+
           break;
 
         case "Delete an employee":
+          //provide list of all emp
+          //get emp  for deletion
+          //check if not manager if manager dont delete
+          //delete
+          promptForDeleteAnEmployee();
           break;
 
         case "Delete a department":
+          //delete a dept if not associated with any role
+          //all depts names with id in
+          //ask which department to remove
+          //find roles with that dep name
+          //if no roles are attached then del the dep
+          promptForDeleteDepartment();
           break;
 
         case "Delete a role":
+          //delete a role if not associated with any emp
+          //provide all roles (id)for
+          //get role needs to be deleted and find role_id for role
+          //get all employess name where role_id is same
+          //if we getback an emp with same role_id which need to be deted then cant delete a role
+          promptForDeleteRole();
           break;
 
         case "View the total utilized buget of a department":
@@ -194,6 +219,27 @@ const startApp = () => {
           break;
 
         case "View employees by Manager":
+          query
+            .viewAllEmployeesbyManager(connection)
+            .then((answer) => {
+              console.table(answer);
+              startApp();
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+          break;
+
+        case "View employees by Department":
+          query
+            .viewAllEmployeesbyDepartment(connection)
+            .then((answer) => {
+              console.table(answer);
+              startApp();
+            })
+            .catch((err) => {
+              console.log(err);
+            });
           break;
 
         case "Quit":
@@ -333,14 +379,14 @@ function promptForBudgetUtilization() {
   query
     .viewDepartment(connection)
     .then((answer) => {
-      //console.log(answer);
+      let deptChoices = answer.map((row) => row.dept_name);
       inquirer
         .prompt([
           {
             type: "list",
             name: "dept",
             message: "Which Department Budget do you want to calculate?",
-            choices: answer,
+            choices: deptChoices,
           },
         ])
         .then((emp) => {
@@ -380,7 +426,8 @@ function promptForUpdateEmployeeRole() {
       answer
     );
     query.viewEmployeesNames(connection).then((employeeChoices) => {
-      query.viewRoleNames(connection).then((roleChoices) => {
+      query.viewRoleNames(connection).then((roleInfo) => {
+        let roleChoices = roleInfo.map((row) => row.title);
         inquirer
           .prompt([
             {
@@ -410,4 +457,288 @@ function promptForUpdateEmployeeRole() {
       });
     });
   });
+}
+
+//provide list of all emp
+//get emp  for deletion
+//check if not manager if manager dont delete
+//delete
+// var index;
+function promptForDeleteAnEmployee() {
+  query.viewEmployeesNames(connection).then((allEmps) => {
+    // let managersNameArray = allEmps.map(
+    //   (item) => item.first_name + " " + item.last_name
+    // );
+    console.log("allemps from index.js", allEmps);
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "deleteEmp",
+          message: "Please select an employee to be deleted",
+          choices: allEmps,
+        },
+      ])
+      .then((empObj) => {
+        query
+          .allManagerNames(connection)
+          .then((managersName) => {
+            //console.log(answer);
+            //startApp();
+            console.log(
+              "all managesr name from index after query",
+              managersName
+            );
+            const managersNameArray = managersName.map((item) => item.fullName);
+            console.log("manager array from index", managersNameArray);
+            isManagerTrue = managersNameArray.includes(empObj.deleteEmp);
+            if (isManagerTrue) {
+              console.log("Cannt Delete as selected Emp is a Manager ");
+              startApp();
+            } else {
+              console.log("all emp is available after 1st query", allEmps);
+              console.log(empObj.deleteEmp);
+              query
+                .viewEmployeesNamesAndId(connection)
+                .then((EmpNamesWithId) => {
+                  console.log(EmpNamesWithId);
+                  // const EmpObjToBeDeleted = EmpNamesWithId.filter((item) => {
+                  //   item.fullName == empObj.deleteEmp;
+                  // });
+                  // const index = EmpNamesWithId.findIndex(
+                  //   (item) => item.fullName === empObj.deleteEmp
+                  // );
+                  var index;
+                  for (var i = 0; i < EmpNamesWithId.length; i++) {
+                    if (EmpNamesWithId[i].fullName === empObj.deleteEmp) {
+                      index = EmpNamesWithId[i].id;
+                    }
+                  }
+                  console.log(index);
+                  query
+                    .deleteAnEmployee(connection, index)
+                    .then((answer) => {
+                      console.log(answer);
+                      startApp();
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                    });
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
+  });
+}
+
+//provide user all emp names AND IDselect emp whos managers need to be chnaged \
+//provie manager names
+//get emp id from all emps info on step 1 to get manager is
+//update manager_id where emp first name and last name = empmangtobechANGED
+function promptForUpdateManager() {
+  query
+    .viewEmployeesNamesAndId(connection)
+    .then((empsInfo) => {
+      const empChoices = empsInfo.map((item) => item.fullName);
+      console.log(empsInfo);
+      console.log(empChoices);
+
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "emps",
+            message:
+              "Please select an employee who's managers needs to be updated",
+            choices: empChoices,
+          },
+        ])
+        .then((answer) => {
+          console.log(answer.emps);
+          const empSelected = answer.emps;
+          query
+            .allManagerNames(connection)
+            .then((managerNamesId) => {
+              // console.log(answer);
+              // startApp();
+              const managerChoices = managerNamesId.map(
+                (item) => item.fullName
+              );
+              console.log("managerchoices", managerChoices);
+              inquirer
+                .prompt([
+                  {
+                    type: "list",
+                    name: "name",
+                    message: "Please select a Manager for an employee",
+                    choices: managerChoices,
+                  },
+                ])
+                .then((managerSelected) => {
+                  console.log(managerSelected.name);
+                  const managerIndex = managerNamesId.findIndex(
+                    (element) => element.fullName === managerSelected.name
+                  );
+                  console.log(managerIndex);
+                  const managerId = managerNamesId[managerIndex].id;
+                  console.log(managerId);
+                  console.log(empSelected);
+                  query
+                    .updateManagersName(connection, managerId, empSelected)
+                    .then((answer) => {
+                      console.log(answer);
+                      startApp();
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                    });
+                });
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+//delete a role if not associated with any emp
+//provide all roles (id)for
+//get role needs to be deleted and find role_id for role
+//get all employess name where role_id is same
+//if we getback an emp with same role_id which need to be deted then cant delete a role
+function promptForDeleteRole() {
+  query
+    .viewRoleNames(connection)
+    .then((roleInfo) => {
+      console.log(roleInfo);
+      const roleChoices = roleInfo.map((row) => row.title);
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "role",
+            message: "Please select a role to be deleted",
+            choices: roleChoices,
+          },
+        ])
+        .then((selectedRole) => {
+          console.log(selectedRole.role);
+          console.log(roleInfo);
+          // const selectedRoleIndex = roleInfo.findIndex((element) => {
+          //   element.title == selectedRole.role;
+          // });
+          var selectedRoleId;
+          for (var i = 0; i < roleInfo.length; i++) {
+            if (roleInfo[i].title === selectedRole.role) {
+              selectedRoleId = roleInfo[i].id;
+            }
+          }
+          // console.log(selectedRoleIndex);
+          // const selectedRoleId = roleInfo[selectedRoleIndex].id;
+          console.log(selectedRoleId);
+
+          query
+            .empsWithRoleId(connection, selectedRoleId)
+            .then((employeesWithRole) => {
+              console.log(employeesWithRole.length);
+              if (employeesWithRole.length > 0) {
+                console.log(
+                  "Cannot Delete a Role as employees are associated with it"
+                );
+              } else {
+                query
+                  .deleteRole(connection, selectedRoleId)
+                  .then((res) => {
+                    console.log(res);
+                    startApp();
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                  });
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+//delete a dept if not associated with any role
+//all depts names with id in
+//ask which department to remove
+//find roles with that dep name
+//if no roles are attached then del the dep
+function promptForDeleteDepartment() {
+  query
+    .viewDepartment(connection)
+    .then((res) => {
+      console.log(res);
+      const deptChoices = res.map((item) => item.dept_name);
+      console.log(deptChoices);
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "dept",
+            message: "Please select a department to be deleted",
+            choices: deptChoices,
+          },
+        ])
+        .then((selectedDept) => {
+          console.log(selectedDept.dept);
+          // var deptIndex = res.findIndex((element) => {
+          //   element.dept_name == selectedDept.dept;
+          // });
+          // const dept_id = res[deptIndex].id;
+          // console.log(dept_id);
+          var dept_id;
+          for (var i = 0; i < res.length; i++) {
+            if (res[i].dept_name === selectedDept.dept) {
+              dept_id = res[i].id;
+            }
+          }
+
+          console.log(dept_id);
+
+          query
+            .rolesWithDeptId(connection, dept_id)
+            .then((rolesWithDept) => {
+              console.log(rolesWithDept.length);
+              if (rolesWithDept.length > 0) {
+                console.log(
+                  "Cannot delete Department as roles are associated with it "
+                );
+              } else {
+                query
+                  .deleteDepartment(connection, dept_id)
+                  .then((res) => {
+                    console.log(res);
+                    startApp();
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                  });
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 }
