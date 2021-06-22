@@ -26,19 +26,38 @@ class Query {
         if (err) {
           return reject(err);
         }
-        let rows = res.map((row) => row.dept_name);
-        resolve(rows);
+        // let rows = res.map((row) => row.dept_name);
+        resolve(res);
       });
     });
   }
 
   viewEmployees(connection) {
     const query =
-      "SELECT  employees.first_name, employees.last_name, title,salary, dept_name AS department, CONCAT(employeeManager.first_name + ' ' + employeeManager.last_name) AS manager " +
-      "FROM employees " +
-      "INNER JOIN roles ON employees.role_id = roles.id " +
-      "INNER JOIN departments ON roles.department_id = departments.id " +
-      "INNER JOIN employees AS employeeManager ON  employees.manager_id = employeeManager.id;";
+      // "SELECT " +
+      // "e.first_name, " +
+      // "e.last_name, " +
+      // "roles.title , " +
+      // "roles.salary, " +
+      // "departments.dept_name AS department, " +
+      // "CONCAT(m.first_name + ' ' + m.last_name) AS manager " +
+      // "FROM employees AS e " +
+      // "LEFT OUTER JOIN employees AS m ON  e.manager_id = m.id " +
+      // "INNER JOIN roles ON e.role_id = roles.id " +
+      // "INNER JOIN departments ON roles.department_id = departments.id; ";
+      // use LEFT OUTER JOIN to  show employees with no managers
+      "SELECT " +
+      "e.first_name, " +
+      "e.last_name, " +
+      "r.title AS `role`, " +
+      "r.salary, " +
+      "d.dept_name AS `department`, " +
+      "CONCAT(m.first_name, ' ', m.last_name) as manager " +
+      "FROM employees AS e " +
+      "LEFT OUTER JOIN employees AS m ON e.manager_id = m.id " +
+      "INNER JOIN `roles` AS r ON e.role_id = r.id " +
+      "INNER JOIN departments AS d ON r.department_id = d.id " +
+      "ORDER BY e.last_name, e.first_name;";
     return new Promise((resolve, reject) => {
       connection.query(query, (err, res) => {
         if (err) reject(err);
@@ -50,14 +69,29 @@ class Query {
   viewEmployeesNames(connection) {
     return new Promise((resolve, reject) => {
       connection.query(
-        `SELECT CONCAT(first_name, ' ', last_name) AS fullName FROM employees`,
+        `SELECT  CONCAT(first_name, ' ', last_name) AS fullName FROM employees`,
         (err, res) => {
           if (err) {
             reject(err);
           }
           let nameArray = res.map((row) => row.fullName);
-          // console.log(nameArray);
+          console.log("emp names from res", res);
           resolve(nameArray);
+        }
+      );
+    });
+  }
+
+  viewEmployeesNamesAndId(connection) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT employees.id, CONCAT(first_name, ' ', last_name) AS fullName FROM employees`,
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+
+          resolve(res);
         }
       );
     });
@@ -69,8 +103,8 @@ class Query {
         if (err) {
           reject(err);
         }
-        let role = res.map((row) => row.title);
-        resolve(role);
+        // let role = res.map((row) => row.title);
+        resolve(res);
       });
     });
   }
@@ -116,21 +150,35 @@ class Query {
     });
   }
 
-  //
-  // allManagerNames(connection) {
-  //   return new Promise((resolve, reject) => {
-  //     connection.query(
-  //       `SELECT id ,first_name , last_name, role_id FROM employees AS e WHERE e.manager_id = e.id`,
-  //       (err, res) => {
-  //         if (err) {
-  //           reject(err);
-  //         }
-  //         console.log(res);
-  //         resolve(res);
-  //       }
-  //     );
-  //   });
-  // }
+  allManagerNames(connection) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT id , CONCAT( first_name,' ',last_name) AS fullName FROM employees AS e WHERE e.manager_id = e.id`,
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          console.log(res);
+          resolve(res);
+        }
+      );
+    });
+  }
+
+  allEmplyoeesNamesNotManager(connection) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT id ,first_name , last_name FROM employees AS e WHERE e.manager_id != e.id`,
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          console.log(res);
+          resolve(res);
+        }
+      );
+    });
+  }
 
   viewManagersWithDepartmantandRoles(connection) {
     const query = `SELECT  employees.id,employees.first_name, employees.last_name, title,salary, dept_name AS department
@@ -220,6 +268,154 @@ class Query {
     });
   }
 
+  deleteAnEmployee(connection, emp_id) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `DELETE FROM employees WHERE id = ?`,
+        [emp_id],
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          // console.log(res);
+          resolve("Deleted an Employee Sucessfully");
+        }
+      );
+    });
+  }
+
+  viewAllEmployeesbyManager(connection) {
+    return new Promise((resolve, reject) => {
+      const query =
+        "SELECT " +
+        "CONCAT(m.first_name, ' ', m.last_name) as manager, " +
+        "e.first_name, " +
+        "e.last_name, " +
+        "r.title AS `role`, " +
+        "d.dept_name AS `department` " +
+        "FROM employees AS e " +
+        "LEFT OUTER JOIN employees AS m ON e.manager_id = m.id " +
+        "INNER JOIN `roles` AS r ON e.role_id = r.id " +
+        "INNER JOIN departments AS d ON r.department_id = d.id " +
+        "ORDER BY manager;";
+      connection.query(query, (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        // console.log(res);
+        resolve(res);
+      });
+    });
+  }
+
+  viewAllEmployeesbyDepartment(connection) {
+    return new Promise((resolve, reject) => {
+      const query =
+        "SELECT " +
+        "CONCAT(m.first_name, ' ', m.last_name) as manager, " +
+        "e.first_name, " +
+        "e.last_name, " +
+        "r.title AS `role`, " +
+        "d.dept_name AS `department` " +
+        "FROM employees AS e " +
+        "LEFT OUTER JOIN employees AS m ON e.manager_id = m.id " +
+        "INNER JOIN `roles` AS r ON e.role_id = r.id " +
+        "INNER JOIN departments AS d ON r.department_id = d.id " +
+        "ORDER BY department;";
+      connection.query(query, (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        // console.log(res);
+        resolve(res);
+      });
+    });
+  }
+
+  updateManagersName(connection, managerId, empName) {
+    empName = empName.split(" ");
+    const firstName = empName[0];
+    const lastName = empName[1];
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `UPDATE employees
+      SET manager_id = ?
+      WHERE (first_name = ? AND last_name = ?)`,
+        [managerId, firstName, lastName],
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          // console.log(res);
+          resolve("Employee's Manager Name updated Sucessfully");
+        }
+      );
+    });
+  }
+
+  empsWithRoleId(connection, roleId) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        "SELECT id, CONCAT(`first_name`, ' ', `last_name`) as fullName FROM employees WHERE role_id = ?",
+        [roleId],
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          console.log(res);
+          resolve(res);
+        }
+      );
+    });
+  }
+
+  deleteRole(connection, selectedRoleId) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `DELETE FROM roles WHERE id = ?`,
+        [selectedRoleId],
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          // console.log(res);
+          resolve("Role Deleted Sucessfully");
+        }
+      );
+    });
+  }
+
+  rolesWithDeptId(connection, dept_id) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        "SELECT title FROM roles WHERE department_id = ?",
+        [dept_id],
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          // console.log(res);
+          resolve(res);
+        }
+      );
+    });
+  }
+
+  deleteDepartment(connection, dept_id) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `DELETE FROM departments WHERE id = ?`,
+        [dept_id],
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          // console.log(res);
+          resolve("Department Deleted Sucessfully");
+        }
+      );
+    });
+  }
   quit(connection) {
     connection.end();
   }
