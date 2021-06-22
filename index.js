@@ -63,88 +63,11 @@ const startApp = () => {
           break;
 
         case "Add a department":
-          inquirer
-            .prompt([
-              {
-                type: "input",
-                name: "departmentName",
-                message: "Please enter Department name you want to enter",
-                validate: (departmentName) => {
-                  if (departmentName) {
-                    return true;
-                  } else {
-                    return "Please enter a department name.";
-                  }
-                },
-              },
-            ])
-            .then((answer) => {
-              query
-                .addDepartment(answer.departmentName, connection)
-                .then((answer) => {
-                  console.log(answer);
-                  startApp();
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
-            });
+          promptForAddDepartment();
+
           break;
         case "Add a role":
-          //collect all departments from db
-          query.viewDepartment(connection).then((Alldepts) => {
-            let deptChoices = Alldepts.map((row) => row.dept_name);
-            inquirer
-              .prompt([
-                {
-                  type: "input",
-                  name: "roleTitle",
-                  message: "Please enter Role title you want to add.",
-                  validate: (roleTitle) => {
-                    if (roleTitle) {
-                      return true;
-                    } else {
-                      return "Please enter a role name.";
-                    }
-                  },
-                },
-                {
-                  type: "input",
-                  name: "salary",
-                  message:
-                    "Please enter salary for current role you want to add.",
-                  validate: (salary) => {
-                    if (regexNumber.test(salary)) {
-                      return true;
-                    } else {
-                      return "Please enter valid salary";
-                    }
-                  },
-                },
-                {
-                  type: "list",
-                  name: "chooseDept",
-                  message: "Please select department for current role",
-                  choices: deptChoices,
-                },
-              ])
-              .then((ans) => {
-                query
-                  .addRole(
-                    ans.roleTitle,
-                    ans.salary,
-                    ans.chooseDept,
-                    connection
-                  )
-                  .then((answer) => {
-                    console.log(answer);
-                    startApp();
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                  });
-              });
-          });
+          promptForAddRole();
           break;
 
         case "Add an employee":
@@ -754,4 +677,84 @@ const promptForViewEmployees = () => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+const promptForAddDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "departmentName",
+        message: "Please enter Department name you want to enter",
+        validate: (departmentName) => {
+          if (departmentName) {
+            return true;
+          } else {
+            return "Please enter a department name.";
+          }
+        },
+      },
+    ])
+    .then((answer) => {
+      query
+        .addDepartment(answer.departmentName, connection)
+        .then((answer) => {
+          console.log(answer);
+          startApp();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+};
+
+const promptForAddRole = () => {
+  //collect all departments from db
+  query.viewDepartment(connection).then((Alldepts) => {
+    let deptChoices = Alldepts.map((row) => row.dept_name);
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "roleTitle",
+          message: "Please enter Role title you want to add.",
+          validate: (roleTitle) => {
+            if (roleTitle) {
+              return true;
+            } else {
+              return "Please enter a role name.";
+            }
+          },
+        },
+        {
+          type: "input",
+          name: "salary",
+          message: "Please enter salary for current role you want to add.",
+          validate: (salary) => {
+            if (regexNumber.test(salary)) {
+              return true;
+            } else {
+              return "Please enter valid salary";
+            }
+          },
+        },
+        {
+          type: "list",
+          name: "chooseDept",
+          message: "Please select department for current role",
+          choices: deptChoices,
+        },
+      ])
+      .then((ans) => {
+        query
+          .addRole(ans.roleTitle, ans.salary, ans.chooseDept, connection)
+          .then((answer) => {
+            console.log(answer);
+            startApp();
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
+  });
 };
