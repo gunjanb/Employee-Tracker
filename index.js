@@ -53,64 +53,55 @@ const startApp = () => {
         case "View all departments":
           promptForViewDepartments();
           break;
-
         case "View all roles":
           promptForViewRoles();
           break;
-
         case "View all employees":
           promptForViewEmployees();
           break;
-
         case "Add a department":
           promptForAddDepartment();
-
           break;
         case "Add a role":
           promptForAddRole();
           break;
-
         case "Add an employee":
           promptForAddEmployee();
           break;
-
         case "Update employee role":
           promptForUpdateEmployeeRole();
           break;
-
         case "Update employee managers":
           promptForUpdateManager();
           break;
-
         case "Delete an employee":
           promptForDeleteAnEmployee();
           break;
-
         case "Delete a department":
           promptForDeleteDepartment();
           break;
-
         case "Delete a role":
           promptForDeleteRole();
           break;
-
         case "View the total utilized buget of a department":
           promptForBudgetUtilization();
           break;
-
         case "View employees by Manager":
           promptForViewAllEmpsByManagers();
-
           break;
-
         case "View employees by Department":
           promptForViewAllEmpByDepartments();
           break;
-
         case "Quit":
+          console.log(
+            logo({
+              name: "Exiting from Employee Database",
+              logoColor: "green",
+              borderColor: "yellow",
+            }).render()
+          );
           query.quit(connection);
           break;
-
         default:
           console.log(`Invalid action: ${answer.action}`);
           break;
@@ -118,13 +109,15 @@ const startApp = () => {
     });
 };
 
-var deptName;
-var roleID;
-var firstName;
-var lastName;
+//prompts for different actions
+
+// add an employee
 const promptForAddEmployee = () => {
+  var deptName;
+  var roleID;
+  var firstName;
+  var lastName;
   query.viewRoles(connection).then((rolesInfo) => {
-    console.table("roleinfo", rolesInfo);
     const roleChoices = rolesInfo.map((row) => row.title);
 
     inquirer
@@ -161,7 +154,6 @@ const promptForAddEmployee = () => {
         },
       ])
       .then((emp) => {
-        console.log(rolesInfo);
         rolesInfo.forEach((element) => {
           if (element.title === emp.role) {
             roleID = element.id;
@@ -179,7 +171,9 @@ const promptForAddEmployee = () => {
           query
             .addEmployeeAsManager(connection, firstName, lastName, roleID)
             .then((res) => {
+              console.log("");
               console.log(res);
+              console.log("");
               startApp();
             })
             .catch((err) => {
@@ -189,17 +183,13 @@ const promptForAddEmployee = () => {
           query
             .viewManagersWithDepartmantandRoles(connection)
             .then((managerInfo) => {
-              console.table(managerInfo);
-              console.log(roleID, deptName);
               var managerArray = managerInfo.filter(
                 (item) => item.department === deptName
               );
-              // console.log(managerArray);
               var managersNameForSelection = managerArray.map(
                 (item) => item.first_name + " " + item.last_name
               );
 
-              console.log(managersNameForSelection);
               inquirer
                 .prompt([
                   {
@@ -219,15 +209,15 @@ const promptForAddEmployee = () => {
                       emp.managerName
                     )
                     .then((res) => {
+                      console.log("");
                       console.log(res);
+                      console.log("");
                       startApp();
                     })
                     .catch((err) => {
                       console.log(err);
                     });
                 });
-              // const managersLastName = managerArray.map((item) => item.last_name);
-              //startApp();
             })
             .catch((err) => {
               console.log(err);
@@ -240,6 +230,7 @@ const promptForAddEmployee = () => {
   });
 };
 
+// budget cal
 const promptForBudgetUtilization = () => {
   query
     .viewDepartment(connection)
@@ -255,41 +246,42 @@ const promptForBudgetUtilization = () => {
           },
         ])
         .then((emp) => {
-          // console.log(emp.dept);
           query
             .viewEmployees(connection)
             .then((empInfo) => {
-              console.log(emp.dept);
               var budget = 0;
               empInfo.forEach((element) => {
                 if (element.department === emp.dept) {
                   budget = budget + element.salary;
                 }
               });
+              console.log("");
               console.log(
                 emp.dept + " Department budget uitization is " + " $" + budget
               );
+              console.log("");
               startApp();
             })
             .catch((err) => {
               console.log(err);
             });
         });
-      //console.log(answer);
-      // startApp();
     })
     .catch((err) => {
       console.log(err);
     });
 };
 
+//update emp role
 const promptForUpdateEmployeeRole = () => {
   // generate employee and role choices dynamically from db
   query.viewEmployees(connection).then((answer) => {
+    console.log("");
     console.table(
       "Please see the Roles Employee is currently in and make choice appropriately",
       answer
     );
+    console.log("");
     query.viewEmployeesNames(connection).then((employeeChoices) => {
       query.viewRoleNames(connection).then((roleInfo) => {
         let roleChoices = roleInfo.map((row) => row.title);
@@ -312,7 +304,9 @@ const promptForUpdateEmployeeRole = () => {
             query
               .updateEmployeeRole(connection, updateRoleObj)
               .then((answer) => {
+                console.log("");
                 console.log(answer);
+                console.log("");
                 startApp();
               })
               .catch((err) => {
@@ -324,12 +318,9 @@ const promptForUpdateEmployeeRole = () => {
   });
 };
 
-//provide list of all emp
-//get emp  for deletion
-//check if not manager if manager dont delete
+//Del Emp
 const promptForDeleteAnEmployee = () => {
   query.viewEmployeesNames(connection).then((allEmps) => {
-    console.log("allemps from index.js", allEmps);
     inquirer
       .prompt([
         {
@@ -343,42 +334,31 @@ const promptForDeleteAnEmployee = () => {
         query
           .allManagerNames(connection)
           .then((managersName) => {
-            //console.log(answer);
-            //startApp();
-            console.log(
-              "all managesr name from index after query",
-              managersName
-            );
             const managersNameArray = managersName.map((item) => item.fullName);
-            console.log("manager array from index", managersNameArray);
+            console.log(managersNameArray);
             isManagerTrue = managersNameArray.includes(empObj.deleteEmp);
+            console.log("is maager tru", isManagerTrue);
             if (isManagerTrue) {
+              console.log("");
               console.log("Cannt Delete as selected Emp is a Manager ");
+              console.log("");
               startApp();
             } else {
-              console.log("all emp is available after 1st query", allEmps);
-              console.log(empObj.deleteEmp);
               query
                 .viewEmployeesNamesAndId(connection)
                 .then((EmpNamesWithId) => {
-                  console.log(EmpNamesWithId);
-                  // const EmpObjToBeDeleted = EmpNamesWithId.filter((item) => {
-                  //   item.fullName == empObj.deleteEmp;
-                  // });
-                  // const index = EmpNamesWithId.findIndex(
-                  //   (item) => item.fullName === empObj.deleteEmp
-                  // );
                   var index;
                   for (var i = 0; i < EmpNamesWithId.length; i++) {
                     if (EmpNamesWithId[i].fullName === empObj.deleteEmp) {
                       index = EmpNamesWithId[i].id;
                     }
                   }
-                  console.log(index);
                   query
                     .deleteAnEmployee(connection, index)
                     .then((answer) => {
+                      console.log("");
                       console.log(answer);
+                      console.log("");
                       startApp();
                     })
                     .catch((err) => {
@@ -397,18 +377,12 @@ const promptForDeleteAnEmployee = () => {
   });
 };
 
-//provide user all emp names and let select an emp whos managers need to be changed
-//provie user  manager names
-//get emp id from all emps info on step 1 to get manager id
-//update manager_id where emp first name and last name = empmangtobechanged
+//update manager
 const promptForUpdateManager = () => {
   query
     .viewEmployeesNamesAndId(connection)
     .then((empsInfo) => {
       const empChoices = empsInfo.map((item) => item.fullName);
-      console.log(empsInfo);
-      console.log(empChoices);
-
       inquirer
         .prompt([
           {
@@ -420,17 +394,13 @@ const promptForUpdateManager = () => {
           },
         ])
         .then((answer) => {
-          console.log(answer.emps);
           const empSelected = answer.emps;
           query
             .allManagerNames(connection)
             .then((managerNamesId) => {
-              // console.log(answer);
-              // startApp();
               const managerChoices = managerNamesId.map(
                 (item) => item.fullName
               );
-              console.log("managerchoices", managerChoices);
               inquirer
                 .prompt([
                   {
@@ -441,18 +411,16 @@ const promptForUpdateManager = () => {
                   },
                 ])
                 .then((managerSelected) => {
-                  console.log(managerSelected.name);
                   const managerIndex = managerNamesId.findIndex(
                     (element) => element.fullName === managerSelected.name
                   );
-                  console.log(managerIndex);
                   const managerId = managerNamesId[managerIndex].id;
-                  console.log(managerId);
-                  console.log(empSelected);
                   query
                     .updateManagersName(connection, managerId, empSelected)
                     .then((answer) => {
+                      console.log("");
                       console.log(answer);
+                      console.log("");
                       startApp();
                     })
                     .catch((err) => {
@@ -470,16 +438,11 @@ const promptForUpdateManager = () => {
     });
 };
 
-//delete a role if not associated with any emp
-//provide all roles (id)
-//get role needs to be deleted and find role_id for role
-//get all employess name where role_id is same
-//if we getback an emp with same role_id which need to be deleted then cant delete a role
+// delete role
 const promptForDeleteRole = () => {
   query
     .viewRoleNames(connection)
     .then((roleInfo) => {
-      console.log(roleInfo);
       const roleChoices = roleInfo.map((row) => row.title);
       inquirer
         .prompt([
@@ -491,34 +454,30 @@ const promptForDeleteRole = () => {
           },
         ])
         .then((selectedRole) => {
-          console.log(selectedRole.role);
-          console.log(roleInfo);
-          // const selectedRoleIndex = roleInfo.findIndex((element) => {
-          //   element.title == selectedRole.role;
-          // });
           var selectedRoleId;
           for (var i = 0; i < roleInfo.length; i++) {
             if (roleInfo[i].title === selectedRole.role) {
               selectedRoleId = roleInfo[i].id;
             }
           }
-          // console.log(selectedRoleIndex);
-          // const selectedRoleId = roleInfo[selectedRoleIndex].id;
-          console.log(selectedRoleId);
 
           query
             .empsWithRoleId(connection, selectedRoleId)
             .then((employeesWithRole) => {
-              console.log(employeesWithRole.length);
               if (employeesWithRole.length > 0) {
+                console.log("");
                 console.log(
                   "Cannot Delete a Role as employees are associated with it"
                 );
+                console.log("");
+                startApp();
               } else {
                 query
                   .deleteRole(connection, selectedRoleId)
                   .then((res) => {
+                    console.log("");
                     console.log(res);
+                    console.log("");
                     startApp();
                   })
                   .catch((err) => {
@@ -536,18 +495,12 @@ const promptForDeleteRole = () => {
     });
 };
 
-//delete a dept if not associated with any role
-//all depts names with id
-//ask which department to remove
-//find roles with that dep name
-//if no roles are attached then del the dep
+//delete dep
 const promptForDeleteDepartment = () => {
   query
     .viewDepartment(connection)
     .then((res) => {
-      console.log(res);
       const deptChoices = res.map((item) => item.dept_name);
-      console.log(deptChoices);
       inquirer
         .prompt([
           {
@@ -558,12 +511,6 @@ const promptForDeleteDepartment = () => {
           },
         ])
         .then((selectedDept) => {
-          console.log(selectedDept.dept);
-          // var deptIndex = res.findIndex((element) => {
-          //   element.dept_name == selectedDept.dept;
-          // });
-          // const dept_id = res[deptIndex].id;
-          // console.log(dept_id);
           var dept_id;
           for (var i = 0; i < res.length; i++) {
             if (res[i].dept_name === selectedDept.dept) {
@@ -571,21 +518,23 @@ const promptForDeleteDepartment = () => {
             }
           }
 
-          console.log(dept_id);
-
           query
             .rolesWithDeptId(connection, dept_id)
             .then((rolesWithDept) => {
-              console.log(rolesWithDept.length);
               if (rolesWithDept.length > 0) {
+                console.log("");
                 console.log(
                   "Cannot delete Department as roles are associated with it "
                 );
+                console.log("");
+                startApp();
               } else {
                 query
                   .deleteDepartment(connection, dept_id)
                   .then((res) => {
+                    console.log("");
                     console.log(res);
+                    console.log("");
                     startApp();
                   })
                   .catch((err) => {
@@ -602,11 +551,13 @@ const promptForDeleteDepartment = () => {
       console.log(err);
     });
 };
+
+// view dept
 const promptForViewDepartments = () => {
   query
     .viewDepartment(connection)
     .then((rows) => {
-      //console.log(rows);
+      console.log("\n");
       console.table("Departments", rows);
       startApp();
     })
@@ -615,11 +566,12 @@ const promptForViewDepartments = () => {
     });
 };
 
+//view role
 const promptForViewRoles = () => {
   query
     .viewRoles(connection)
     .then((rows) => {
-      console.log(rows);
+      console.log("\n");
       console.table("Roles", rows);
       startApp();
     })
@@ -628,10 +580,12 @@ const promptForViewRoles = () => {
     });
 };
 
+//view emp
 const promptForViewEmployees = () => {
   query
     .viewEmployees(connection)
     .then((rows) => {
+      console.log("");
       console.table("Employees", rows);
       startApp();
     })
@@ -640,6 +594,7 @@ const promptForViewEmployees = () => {
     });
 };
 
+//add dept
 const promptForAddDepartment = () => {
   inquirer
     .prompt([
@@ -660,7 +615,9 @@ const promptForAddDepartment = () => {
       query
         .addDepartment(answer.departmentName, connection)
         .then((answer) => {
+          console.log("");
           console.log(answer);
+          console.log("");
           startApp();
         })
         .catch((err) => {
@@ -669,6 +626,7 @@ const promptForAddDepartment = () => {
     });
 };
 
+// Add role
 const promptForAddRole = () => {
   //collect all departments from db
   query.viewDepartment(connection).then((Alldepts) => {
@@ -710,7 +668,9 @@ const promptForAddRole = () => {
         query
           .addRole(ans.roleTitle, ans.salary, ans.chooseDept, connection)
           .then((answer) => {
+            console.log("");
             console.log(answer);
+            console.log("");
             startApp();
           })
           .catch((err) => {
@@ -720,11 +680,12 @@ const promptForAddRole = () => {
   });
 };
 
+// view all emp by manager
 const promptForViewAllEmpsByManagers = () => {
   query
     .viewAllEmployeesbyManager(connection)
     .then((answer) => {
-      console.table(answer);
+      console.table("Employees With their Managers", answer);
       startApp();
     })
     .catch((err) => {
@@ -732,11 +693,12 @@ const promptForViewAllEmpsByManagers = () => {
     });
 };
 
+// view all emp by dept
 const promptForViewAllEmpByDepartments = () => {
   query
     .viewAllEmployeesbyDepartment(connection)
     .then((answer) => {
-      console.table(answer);
+      console.table("All Employees with Departments", answer);
       startApp();
     })
     .catch((err) => {

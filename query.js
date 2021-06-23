@@ -1,9 +1,7 @@
-//const connection = require("./connection");
+//const { query } = require("./connection");
 
-const { query } = require("./connection");
-
-//var value;
 class Query {
+  // view role,id title,sal,dept name for all emp
   viewRoles(connection) {
     const query =
       "SELECT  roles.id, title, salary,dept_name " +
@@ -11,7 +9,6 @@ class Query {
       "INNER JOIN " +
       "departments ON roles.department_id = departments.id " +
       "ORDER BY title;";
-
     return new Promise((resolve, reject) => {
       connection.query(query, (err, res) => {
         if (err) reject(err);
@@ -20,18 +17,19 @@ class Query {
     });
   }
 
+  //view all dept
   viewDepartment(connection) {
     return new Promise((resolve, reject) => {
       connection.query(`SELECT * FROM departments`, (err, res) => {
         if (err) {
           return reject(err);
         }
-        // let rows = res.map((row) => row.dept_name);
         resolve(res);
       });
     });
   }
 
+  //view all emp with all attributes
   viewEmployees(connection) {
     const query =
       // "SELECT " +
@@ -66,6 +64,7 @@ class Query {
     });
   }
 
+  // all emp full names
   viewEmployeesNames(connection) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -75,40 +74,25 @@ class Query {
             reject(err);
           }
           let nameArray = res.map((row) => row.fullName);
-          console.log("emp names from res", res);
           resolve(nameArray);
         }
       );
     });
   }
 
-  viewEmployeesNamesAndId(connection) {
-    return new Promise((resolve, reject) => {
-      connection.query(
-        `SELECT employees.id, CONCAT(first_name, ' ', last_name) AS fullName FROM employees`,
-        (err, res) => {
-          if (err) {
-            reject(err);
-          }
-
-          resolve(res);
-        }
-      );
-    });
-  }
-
+  // role names
   viewRoleNames(connection) {
     return new Promise((resolve, reject) => {
       connection.query(`SELECT * FROM roles`, (err, res) => {
         if (err) {
           reject(err);
         }
-        // let role = res.map((row) => row.title);
         resolve(res);
       });
     });
   }
 
+  // add a dept
   addDepartment(deptName, connection) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -122,13 +106,13 @@ class Query {
           if (err) {
             reject(err);
           }
-          //console.log(res);
           resolve("Department Name added Sucessfully!");
         }
       );
     });
   }
 
+  // adda role
   addRole(title, salary, deptName, connection) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -150,6 +134,7 @@ class Query {
     });
   }
 
+  // get all managers names
   allManagerNames(connection) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -158,13 +143,13 @@ class Query {
           if (err) {
             reject(err);
           }
-          console.log(res);
           resolve(res);
         }
       );
     });
   }
 
+  // emps who are not managers
   allEmplyoeesNamesNotManager(connection) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -173,53 +158,51 @@ class Query {
           if (err) {
             reject(err);
           }
-          console.log(res);
           resolve(res);
         }
       );
     });
   }
 
+  //manager with dept and role
   viewManagersWithDepartmantandRoles(connection) {
     const query = `SELECT  employees.id,employees.first_name, employees.last_name, title,salary, dept_name AS department
   FROM employees
   INNER JOIN roles ON employees.role_id = roles.id 
   INNER JOIN departments ON roles.department_id = departments.id 
   WHERE employees.manager_id = employees.id;`;
-
     return new Promise((resolve, reject) => {
       connection.query(query, (err, res) => {
         if (err) {
           reject(err);
         }
-        // console.log(res);
         resolve(res);
       });
     });
   }
 
+  // adding an employee if role selected  misanager
   addEmployeeAsManager(connection, firstName, lastName, roleID) {
     return new Promise((resolve, reject) => {
       connection.query(
         `INSERT INTO employees
-       SET
+        SET
         first_name = ?,
         last_name = ?,
         role_id = ?,
-        manager_id = (SELECT MAX(id)+1 FROM employees AS x)
-                     `,
+        manager_id = (SELECT MAX(id)+1 FROM employees AS x)`,
         [firstName, lastName, roleID],
         (err, res) => {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve("Employee added Sucessfully");
         }
       );
     });
   }
 
+  //add an emp
   addEmployee(connection, firstName, lastName, roleId, managerName) {
     const managerNameArr = managerName.split(" ");
     const managerFirstName = managerNameArr[0];
@@ -227,7 +210,7 @@ class Query {
     return new Promise((resolve, reject) => {
       connection.query(
         `INSERT INTO employees
-       SET
+        SET
         first_name = ?,
         last_name = ?,
         role_id = ?,
@@ -239,35 +222,33 @@ class Query {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve("Employee added Sucessfully");
         }
       );
     });
   }
 
+  //update emp role
   updateEmployeeRole(connection, { employee, newRole }) {
     employee = employee.split(" ");
     const firstName = employee[0];
     const lastName = employee[1];
     return new Promise((resolve, reject) => {
       connection.query(
-        `UPDATE employees
-      SET role_id = (SELECT id FROM roles
-                     WHERE title = ?)
+        `UPDATE employees SET role_id = (SELECT id FROM roles WHERE title = ?)
       WHERE (first_name = ? AND last_name = ?)`,
         [newRole, firstName, lastName],
         (err, res) => {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve("Employee Role updated Sucessfully");
         }
       );
     });
   }
 
+  //delete an emp
   deleteAnEmployee(connection, emp_id) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -277,13 +258,13 @@ class Query {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve("Deleted an Employee Sucessfully");
         }
       );
     });
   }
 
+  // view all employees by manager
   viewAllEmployeesbyManager(connection) {
     return new Promise((resolve, reject) => {
       const query =
@@ -302,12 +283,12 @@ class Query {
         if (err) {
           reject(err);
         }
-        // console.log(res);
         resolve(res);
       });
     });
   }
 
+  // view all emp by dept
   viewAllEmployeesbyDepartment(connection) {
     return new Promise((resolve, reject) => {
       const query =
@@ -326,12 +307,12 @@ class Query {
         if (err) {
           reject(err);
         }
-        // console.log(res);
         resolve(res);
       });
     });
   }
 
+  //  update managers name
   updateManagersName(connection, managerId, empName) {
     empName = empName.split(" ");
     const firstName = empName[0];
@@ -346,13 +327,13 @@ class Query {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve("Employee's Manager Name updated Sucessfully");
         }
       );
     });
   }
 
+  // emp on roleid roleid
   empsWithRoleId(connection, roleId) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -362,13 +343,13 @@ class Query {
           if (err) {
             reject(err);
           }
-          console.log(res);
           resolve(res);
         }
       );
     });
   }
 
+  //del role
   deleteRole(connection, selectedRoleId) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -378,13 +359,13 @@ class Query {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve("Role Deleted Sucessfully");
         }
       );
     });
   }
 
+  // roles from dep_id
   rolesWithDeptId(connection, dept_id) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -394,13 +375,13 @@ class Query {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve(res);
         }
       );
     });
   }
 
+  //del dept
   deleteDepartment(connection, dept_id) {
     return new Promise((resolve, reject) => {
       connection.query(
@@ -410,12 +391,28 @@ class Query {
           if (err) {
             reject(err);
           }
-          // console.log(res);
           resolve("Department Deleted Sucessfully");
         }
       );
     });
   }
+
+  // emp names with id
+  viewEmployeesNamesAndId(connection) {
+    return new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT employees.id, CONCAT(first_name, ' ', last_name) AS fullName FROM employees`,
+        (err, res) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(res);
+        }
+      );
+    });
+  }
+
+  //quiting connection
   quit(connection) {
     connection.end();
   }
