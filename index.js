@@ -335,9 +335,7 @@ const promptForDeleteAnEmployee = () => {
           .allManagerNames(connection)
           .then((managersName) => {
             const managersNameArray = managersName.map((item) => item.fullName);
-            console.log(managersNameArray);
             isManagerTrue = managersNameArray.includes(empObj.deleteEmp);
-            console.log("is maager tru", isManagerTrue);
             if (isManagerTrue) {
               console.log("");
               console.log("Cannt Delete as selected Emp is a Manager ");
